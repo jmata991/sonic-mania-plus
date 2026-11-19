@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Sonic Mania</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0a0a0a;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: white;
+            touch-action: none;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            height: 100%;
+            background: #000;
+            image-rendering: pixelated;
+        }
+
+        .screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(160deg, #0f0f0f, #1a1a1a);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        .logo {
+            font-size: 2.4rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 1.05rem;
+        }
+
+        .btn {
+            width: 260px;
+            padding: 15px 20px;
+            margin: 9px 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-blue { background: #3b82f6; color: white; }
+        .btn-blue:hover { background: #2563eb; transform: scale(1.03); }
+
+        .btn-green { background: #10b981; color: white; }
+        .btn-green:hover { background: #059669; transform: scale(1.03); }
+
+        .btn-orange { background: #f59e0b; color: white; }
+        .btn-orange:hover { background: #d97706; transform: scale(1.03); }
+
+        .btn-gray { background: #333; color: white; }
+        .btn-gray:hover { background: #444; }
+
+        .hint {
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #666;
+            max-width: 300px;
+            line-height: 1.45;
+        }
+
+        .credits {
+            margin-top: 40px;
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.5;
+        }
+
+        .slider-group {
+            width: 280px;
+            margin: 12px 0;
+            text-align: left;
+        }
+
+        .slider-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            color: #ccc;
+        }
+
+        .slider-group input[type=range] {
+            width: 100%;
+            accent-color: #3b82f6;
+        }
+
+        .value {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        #game-root {
+            position: fixed;
+            inset: 0;
+            background: #000;
+        }
+
+        #game-root:fullscreen,
+        #game-root:-webkit-full-screen {
+            width: 100%;
+            height: 100%;
+        }
+
+        #controls {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+            display: none;
+        }
+
+        #joystick-zone {
+            position: absolute;
+            left: 20px;
+            bottom: 30px;
+            width: 140px;
+            height: 140px;
+            pointer-events: auto;
+        }
+
+        #joystick-base {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.12);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        #joystick-stick {
+            width: 55%;
+            height: 55%;
+            background: rgba(255, 255, 255, 0.45);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .action-btn {
+            position: absolute;
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.18);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            font-weight: bold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        #btn-jump {
+            right: 30px;
+            bottom: 110px;
+            width: 80px;
+            height: 80px;
+            font-size: 18px;
+        }
+
+        #btn-switch {
+            right: 120px;
+            bottom: 30px;
+            width: 60px;
+            height: 60px;
+            font-size: 13px;
+        }
+
+        #btn-pause {
+            right: 30px;
+            bottom: 30px;
+            width: 60px;
+            height: 60px;
+            font-size: 14px;
+            background: rgba(255, 180, 0, 0.25);
+            border-color: rgba(255, 180, 0, 0.5);
+        }
+
+        #btn-fullscreen {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 44px;
+            height: 44px;
+            font-size: 18px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-mode .action-btn,
+        .edit-mode #joystick-zone {
+            outline: 2px dashed #3b82f6;
+        }
+
+        #edit-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px;
+            display: none;
+            justify-content: center;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        #edit-bar button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #loading {
+            position: fixed;
+            inset: 0;
+            background: #0a0a0a;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+        }
+
+        .bar-bg {
+            width: 280px;
+            height: 12px;
+            background: #222;
+            border-radius: 20px;
+            margin: 16px 0;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            border-radius: 20px;
+            transition: width 0.25s;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- MAIN MENU -->
+    <div id="main-menu" class="screen">
+        <div class="logo">Sonic Mania</div>
+        <div class="subtitle">How do you want to play?</div>
+
+        <button class="btn btn-blue" onclick="startPC()">PC Mode</button>
+        <button class="btn btn-green" onclick="showMobileSettings()">Mobile Mode</button>
+        <button class="btn btn-gray" onclick="resetSavedData()" style="width:260px; font-size:0.85rem; padding:10px;">Start over with the original save files</button>
+
+        <div class="hint">
+            Mobile Mode gives you a joystick plus jump, character swap and pause buttons.
+        </div>
+
+        <div class="credits">
+            Web port by <strong style="color:#888;">Crunch Arcade</strong><br>
+            Controls & UI by Grok
+        </div>
+    </div>
+
+    <!-- MOBILE SETTINGS -->
+    <div id="mobile-settings" class="screen hidden">
+        <div class="logo" style="font-size:1.8rem;">Mobile Settings</div>
+        <div class="subtitle">Customize your controls</div>
+
+        <div class="slider-group">
+            <label>Joystick Size</label>
+            <input type="range" id="joy-size" min="100" max="200" value="140">
+            <div class="value" id="joy-size-val">140 px</div>
+        </div>
+
+        <div class="slider-group">
+            <label>Jump Button Size</label>
+            <input type="range" id="jump-size" min="60" max="120" value="80">
+            <div class="value" id="jump-size-val">80 px</div>
+        </div>
+
+        <div class="slider-group">
+            <label>Switch / Pause Size</label>
+            <input type="range" id="small-size" min="45" max="90" value="60">
+            <div class="value" id="small-size-val">60 px</div>
+        </div>
+
+        <button class="btn btn-orange" onclick="enterEditMode()" style="margin-top:20px;">Customize Positions</button>
+        <button class="btn btn-green" onclick="startMobile()">Start Game</button>
+        <button class="btn btn-gray" onclick="goBack()">Back</button>
+    </div>
+
+    <!-- EDIT BAR -->
+    <div id="edit-bar">
+        <button style="background:#10b981; color:white;" onclick="finishEdit()">Done</button>
+        <button style="background:#ef4444; color:white;" onclick="resetPositions()">Reset</button>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loading">
+        <div style="font-size:1.5rem; font-weight:700;">Sonic Mania</div>
+        <div class="bar-bg"><div class="bar" id="bar"></div></div>
+        <div id="status">Just a sec...</div>
+    </div>
+
+    <!-- Canvas and touch controls live in one wrapper so fullscreen keeps both -->
+    <div id="game-root">
+    <canvas id="canvas" onclick="window.focus();" oncontextmenu="event.preventDefault();"></canvas>
+
+    <!-- TOUCH CONTROLS -->
+    <div id="controls">
+        <div id="joystick-zone">
+            <div id="joystick-base">
+                <div id="joystick-stick"></div>
+            </div>
+        </div>
+        <div class="action-btn" id="btn-jump">A</div>
+        <div class="action-btn" id="btn-switch">W</div>
+        <div class="action-btn" id="btn-pause">❚❚</div>
+        <div id="btn-fullscreen">⛶</div>
+    </div>
+    </div>
+
+    <script>
+        let joySize = 140;
+        let jumpSize = 80;
+        let smallSize = 60;
+        let editMode = false;
+
+        // Sliders for button sizes
+        document.getElementById('joy-size').oninput = function(e) {
+            joySize = +e.target.value;
+            document.getElementById('joy-size-val').textContent = joySize + ' px';
+            applySizes();
+        };
+
+        document.getElementById('jump-size').oninput = function(e) {
+            jumpSize = +e.target.value;
+            document.getElementById('jump-size-val').textContent = jumpSize + ' px';
+            applySizes();
+        };
+
+        document.getElementById('small-size').oninput = function(e) {
+            smallSize = +e.target.value;
+            document.getElementById('small-size-val').textContent = smallSize + ' px';
+            applySizes();
+        };
+
+        function showMobileSettings() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('mobile-settings').classList.remove('hidden');
+        }
+
+        function goBack() {
+            document.getElementById('mobile-settings').classList.add('hidden');
+            document.getElementById('main-menu').classList.remove('hidden');
+        }
+
+        function applySizes() {
+            const zone = document.getElementById('joystick-zone');
+            zone.style.width = joySize + 'px';
+            zone.style.height = joySize + 'px';
+
+            document.getElementById('btn-jump').style.width = jumpSize + 'px';
+            document.getElementById('btn-jump').style.height = jumpSize + 'px';
+
+            document.getElementById('btn-switch').style.width = smallSize + 'px';
+            document.getElementById('btn-switch').style.height = smallSize + 'px';
+
+            document.getElementById('btn-pause').style.width = smallSize + 'px';
+            document.getElementById('btn-pause').style.height = smallSize + 'px';
+        }
+
+        // Fullscreen
+        // We fullscreen the wrapper, not the whole page or just the canvas, because
+        // anything outside the fullscreen element gets hidden (that's what was
+        // making the touch buttons vanish).
+        const gameRoot = document.getElementById('game-root');
+        const gameCanvas = document.getElementById('canvas');
+        let mobileActive = false;
+
+        function inFullscreen() {
+            return document.fullscreenElement || document.webkitFullscreenElement;
+        }
+
+        function toggleFullscreen() {
+            if (inFullscreen()) {
+                (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                return;
+            }
+            const req = gameRoot.requestFullscreen || gameRoot.webkitRequestFullscreen;
+            if (!req) return; // e.g. iPhone Safari has no fullscreen API for pages
+            const p = req.call(gameRoot);
+            if (p && p.catch) p.catch(function() {});
+        }
+
+        // If the game itself asks for canvas fullscreen (Alt+Enter, Settings.ini),
+        // send it to the wrapper instead so the controls stay visible.
+        gameCanvas.requestFullscreen = gameCanvas.webkitRequestFullscreen = function() {
+            if (!inFullscreen()) toggleFullscreen();
+            return Promise.resolve();
+        };
+
+        document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
+
+        function onFullscreenChange() {
+            // Let go of anything held mid-switch and make sure the controls are still showing
+            if (typeof releaseAllKeys === 'function') releaseAllKeys();
+            if (mobileActive && !editMode) {
+                document.getElementById('controls').style.display = 'block';
+            }
+        }
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+        // Dragging the buttons around
+        function enterEditMode() {
+            document.getElementById('mobile-settings').classList.add('hidden');
+            document.getElementById('controls').style.display = 'block';
+            document.getElementById('edit-bar').style.display = 'flex';
+            document.body.classList.add('edit-mode');
+            editMode = true;
+        }
+
+        function finishEdit() {
+            document.body.classList.remove('edit-mode');
+            document.getElementById('edit-bar').style.display = 'none';
+            document.getElementById('controls').style.display = 'none';
+            document.getElementById('mobile-settings').classList.remove('hidden');
+            editMode = false;
+        }
+
+        function resetPositions() {
+            const zone = document.getElementById('joystick-zone');
+            zone.style.left = '20px';
+            zone.style.bottom = '30px';
+            zone.style.top = 'auto';
+            zone.style.right = 'auto';
+
+            const jump = document.getElementById('btn-jump');
+            jump.style.right = '30px';
+            jump.style.bottom = '110px';
+            jump.style.left = 'auto';
+            jump.style.top = 'auto';
+
+            const sw = document.getElementById('btn-switch');
+            sw.style.right = '120px';
+            sw.style.bottom = '30px';
+            sw.style.left = 'auto';
+            sw.style.top = 'auto';
+
+            const pause = document.getElementById('btn-pause');
+            pause.style.right = '30px';
+            pause.style.bottom = '30px';
+            pause.style.left = 'auto';
+            pause.style.top = 'auto';
+        }
+
+        function makeDraggable(el) {
+            let startX, startY, origX, origY, dragging = false;
+
+            function start(e) {
+                if (!editMode) return;
+                e.preventDefault();
+                e.stopPropagation();
+                dragging = true;
+                const t = e.touches ? e.touches[0] : e;
+                startX = t.clientX;
+                startY = t.clientY;
+                const rect = el.getBoundingClientRect();
+                origX = rect.left;
+                origY = rect.top;
+                el.style.left = origX + 'px';
+                el.style.top = origY + 'px';
+                el.style.right = 'auto';
+                el.style.bottom = 'auto';
+            }
+
+            function move(e) {
+                if (!dragging || !editMode) return;
+                e.preventDefault();
+                const t = e.touches ? e.touches[0] : e;
+                el.style.left = (origX + t.clientX - startX) + 'px';
+                el.style.top = (origY + t.clientY - startY) + 'px';
+            }
+
+            function end() {
+                dragging = false;
+            }
+
+            el.addEventListener('touchstart', start, { passive: false });
+            el.addEventListener('touchmove', move, { passive: false });
+            el.addEventListener('touchend', end);
+            el.addEventListener('mousedown', start);
+            window.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', end);
+        }
+
+        makeDraggable(document.getElementById('joystick-zone'));
+        makeDraggable(document.getElementById('btn-jump'));
+        makeDraggable(document.getElementById('btn-switch'));
+        makeDraggable(document.getElementById('btn-pause'));
+
+        // The game only understands the keyboard, so the on-screen controls fake key presses
+        const KEYCODES = { ArrowUp: 38, ArrowDown: 40, ArrowLeft: 37, ArrowRight: 39, KeyA: 65, KeyW: 87, Enter: 13 };
+        const KEYNAMES = { ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight', KeyA: 'a', KeyW: 'w', Enter: 'Enter' };
+        const heldKeys = {};
+
+        function sendKey(code, down) {
+            if (!!heldKeys[code] === down) return; // already in that state, nothing to do
+            heldKeys[code] = down;
+            const kc = KEYCODES[code] || 0;
+            const ev = new KeyboardEvent(down ? 'keydown' : 'keyup', {
+                code: code,
+                key: KEYNAMES[code] || code,
+                keyCode: kc,
+                which: kc,
+                bubbles: true,
+                cancelable: true
+            });
+            // some browsers ignore keyCode/which when you pass them to the constructor
+            try {
+                Object.defineProperty(ev, 'keyCode', { get: function() { return kc; } });
+                Object.defineProperty(ev, 'which', { get: function() { return kc; } });
+            } catch (e) {}
+            // fire it on the canvas once; it bubbles up to document and window by itself
+            document.getElementById('canvas').dispatchEvent(ev);
+        }
+
+        function releaseAllKeys() {
+            Object.keys(heldKeys).forEach(function(k) { if (heldKeys[k]) sendKey(k, false); });
+            keys = { up: false, down: false, left: false, right: false };
+        }
+
+        // Joystick. Pointer events cover touch and mouse, and let us follow one specific finger
+        const zone = document.getElementById('joystick-zone');
+        const stick = document.getElementById('joystick-stick');
+        let joyPointer = null;
+        let keys = { up: false, down: false, left: false, right: false };
+
+        function updateKeys(dx, dy, max) {
+            const dead = max * 0.25;
+            const n = {
+                up: dy < -dead,
+                down: dy > dead,
+                left: dx < -dead,
+                right: dx > dead
+            };
+            if (n.up !== keys.up) sendKey('ArrowUp', n.up);
+            if (n.down !== keys.down) sendKey('ArrowDown', n.down);
+            if (n.left !== keys.left) sendKey('ArrowLeft', n.left);
+            if (n.right !== keys.right) sendKey('ArrowRight', n.right);
+            keys = n;
+        }
+
+        function joyUpdate(e) {
+            const rect = zone.getBoundingClientRect();
+            let dx = e.clientX - (rect.left + rect.width / 2);
+            let dy = e.clientY - (rect.top + rect.height / 2);
+            const max = rect.width / 2;
+            const dist = Math.hypot(dx, dy);
+            if (dist > max) {
+                dx = (dx / dist) * max;
+                dy = (dy / dist) * max;
+            }
+            stick.style.transform = 'translate(calc(-50% + ' + dx + 'px), calc(-50% + ' + dy + 'px))';
+            updateKeys(dx, dy, max);
+        }
+
+        function joyStart(e) {
+            if (editMode || joyPointer !== null) return;
+            e.preventDefault();
+            joyPointer = e.pointerId;
+            try { zone.setPointerCapture(e.pointerId); } catch (err) {}
+            joyUpdate(e);
+        }
+
+        function joyMove(e) {
+            if (editMode || e.pointerId !== joyPointer) return;
+            e.preventDefault();
+            joyUpdate(e);
+        }
+
+        function joyEnd(e) {
+            if (e.pointerId !== joyPointer) return;
+            joyPointer = null;
+            stick.style.transform = 'translate(-50%, -50%)';
+            updateKeys(0, 0, 1);
+        }
+
+        zone.addEventListener('pointerdown', joyStart);
+        zone.addEventListener('pointermove', joyMove);
+        zone.addEventListener('pointerup', joyEnd);
+        zone.addEventListener('pointercancel', joyEnd);
+        zone.addEventListener('lostpointercapture', joyEnd);
+
+        // If the tab loses focus, let go of everything so Sonic doesn't keep running
+        window.addEventListener('blur', function() {
+            joyPointer = null;
+            stick.style.transform = 'translate(-50%, -50%)';
+            releaseAllKeys();
+        });
+
+        // Buttons. Each one follows its own finger so you can hold several at once
+        function bindBtn(id, code) {
+            const el = document.getElementById(id);
+            let activePointer = null;
+            el.addEventListener('pointerdown', function(e) {
+                if (editMode || activePointer !== null) return;
+                e.preventDefault();
+                activePointer = e.pointerId;
+                try { el.setPointerCapture(e.pointerId); } catch (err) {}
+                sendKey(code, true);
+            });
+            const up = function(e) {
+                if (e.pointerId !== activePointer) return;
+                activePointer = null;
+                sendKey(code, false);
+            };
+            el.addEventListener('pointerup', up);
+            el.addEventListener('pointercancel', up);
+            el.addEventListener('lostpointercapture', up);
+        }
+
+        bindBtn('btn-jump', 'KeyA');
+        bindBtn('btn-switch', 'KeyW');
+        bindBtn('btn-pause', 'Enter');
+
+        // Starting up
+        function startPC() {
+            document.getElementById('main-menu').classList.add('hidden');
+            document.getElementById('loading').style.display = 'flex';
+            bootGame();
+        }
+
+        function startMobile() {
+            applySizes();
+            mobileActive = true;
+            document.getElementById('mobile-settings').classList.add('hidden');
+            document.getElementById('controls').style.display = 'block';
+            document.getElementById('loading').style.display = 'flex';
+            bootGame();
+        }
+
+        // Files we drop into the game's virtual file system on startup.
+        // Keep them in the same folder as index.html. Anything missing is just skipped.
+        // (SaveEditor.dll gets copied in too, but a browser can't run a Windows DLL.)
+        const GAME_FILES = [
+            'SaveData.bin',
+            'Settings.ini',
+            'Achievements.bin',
+            'TimeAttackDB.bin',
+            'ReplayDB.bin',
+            'Replay_CF48FD4E.bin',
+            'SaveEditor.dll'
+        ];
+        const PERSIST_DIR = '/saves';
+
+        // Game engine, WASM, and data assets are hosted in this jsDelivr repository.
+        // The branch URL follows the repository's current main branch.
+        const ASSET_BASE = 'https://cdn.jsdelivr.net/gh/jmata991/sonic-mania-plus/';
+
+        const lastSynced = {};
+
+        function isGameFile(name) {
+            return GAME_FILES.indexOf(name) !== -1 || /^Replay_[0-9A-Fa-f]+\.bin$/.test(name);
+        }
+
+        // Copy any files that changed over to the browser storage so progress sticks around
+        function persistGameFiles(flush) {
+            try {
+                FS.readdir('/').forEach(function(name) {
+                    if (!isGameFile(name)) return;
+                    const st = FS.stat('/' + name);
+                    const stamp = st.mtime.getTime() + ':' + st.size;
+                    if (lastSynced[name] === stamp) return;
+                    FS.writeFile(PERSIST_DIR + '/' + name, FS.readFile('/' + name));
+                    lastSynced[name] = stamp;
+                });
+                FS.syncfs(false, function() {});
+            } catch (e) {}
+        }
+
+        function resetSavedData() {
+            if (!confirm('This wipes the progress saved in this browser and goes back to the save files that came with the game. Sure?')) return;
+            try {
+                const req = indexedDB.deleteDatabase(PERSIST_DIR);
+                req.onsuccess = req.onerror = req.onblocked = function() { location.reload(); };
+            } catch (e) { location.reload(); }
+        }
+
+        function bootGame() {
+            const bar = document.getElementById('bar');
+            const status = document.getElementById('status');
+
+            var Module = {
+                preRun: [function() {
+                    // don't let the game start until the save files are in place
+                    Module.addRunDependency('game-files');
+                    try { FS.mkdir(PERSIST_DIR); } catch (e) {}
+                    FS.mount(IDBFS, {}, PERSIST_DIR);
+
+                    FS.syncfs(true, function() {
+                        // first, bring back whatever was saved in this browser
+                        try {
+                            FS.readdir(PERSIST_DIR).forEach(function(name) {
+                                if (!isGameFile(name)) return;
+                                FS.writeFile('/' + name, FS.readFile(PERSIST_DIR + '/' + name));
+                            });
+                        } catch (e) {}
+
+                        // then fetch our own copy of anything that's still missing
+                        const jobs = GAME_FILES.map(function(name) {
+                            if (FS.analyzePath('/' + name).exists) return Promise.resolve();
+                            return fetch(ASSET_BASE + name, { cache: 'no-store' })
+                                .then(function(res) {
+                                    const type = res.headers.get('content-type') || '';
+                                    // some hosts answer a missing file with an HTML page instead of a 404, so check for that
+                                    if (!res.ok || type.indexOf('text/html') !== -1) throw new Error('missing');
+                                    return res.arrayBuffer();
+                                })
+                                .then(function(buf) {
+                                    FS.writeFile('/' + name, new Uint8Array(buf));
+                                    console.log('Loaded', name);
+                                })
+                                .catch(function() {
+                                    console.log('Could not find', name, '- skipping it');
+                                });
+                        });
+
+                        Promise.all(jobs).then(function() {
+                            persistGameFiles();
+                            Module.removeRunDependency('game-files');
+                        });
+                    });
+                }],
+                postRun: [function() {
+                    document.getElementById('loading').style.display = 'none';
+                    setInterval(persistGameFiles, 5000);
+                    window.addEventListener('pagehide', persistGameFiles);
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.hidden) persistGameFiles();
+                    });
+                }],
+                canvas: document.getElementById('canvas'),
+                locateFile: function(path) {
+                    return ASSET_BASE + path;
+                },
+                setStatus: function(t) {
+                    if (!t) return;
+                    status.textContent = t;
+                    if (t.startsWith('Downloading part')) {
+                        const m = t.match(/(\d+)\/(\d+)/);
+                        if (m) bar.style.width = (parseInt(m[1]) / 14 * 100) + '%';
+                    }
+                    if (t.includes('Assembling')) bar.style.width = '100%';
+                },
+                print: console.log,
+                printErr: console.error
+            };
+
+            window.Module = Module;
+
+            // Data.js requests these chunks with relative fetch('Data.data.partN')
+            // URLs. Since this HTML is hosted locally, redirect only those requests
+            // to the jsDelivr repository. There are 14 chunks: part0 through part13.
+            const DATA_PARTS = Array.from({ length: 14 }, function(_, index) {
+                return 'Data.data.part' + index;
+            });
+            const originalFetch = window.fetch.bind(window);
+            window.fetch = function(input, init) {
+                const requestedUrl = typeof input === 'string' ? input : input.url;
+                const filename = requestedUrl.split('/').pop().split('?')[0];
+                if (DATA_PARTS.indexOf(filename) !== -1) {
+                    return originalFetch(ASSET_BASE + filename, init);
+                }
+                return originalFetch(input, init);
+            };
+
+            const s1 = document.createElement('script');
+            s1.src = ASSET_BASE + 'Data.js';
+            document.body.appendChild(s1);
+
+            s1.onload = function() {
+                const s2 = document.createElement('script');
+                s2.src = ASSET_BASE + 'RSDKv5U.js';
+                s2.async = true;
+                document.body.appendChild(s2);
+            };
+        }
+    </script>
+</body>
+</html>
